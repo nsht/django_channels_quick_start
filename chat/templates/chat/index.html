@@ -1,0 +1,63 @@
+<!-- chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Chat Rooms</title>
+  </head>
+  <body>
+    Upload CSV:<br />
+    <input type="file" id="fileUpload" /> <br><hr>
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+
+    <script>
+      const handleImageUpload = event => {
+        const files = event.target.files;
+        const formData = new FormData();
+        formData.append("myFile", files[0]);
+        ws_handler('myFile')
+        alert("start fetch")
+        fetch("upload/myFile/", {
+          method: "POST",
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      };
+
+
+    const ws_handler = roomName => {
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+    }
+
+
+
+      document
+        .querySelector("#fileUpload")
+        .addEventListener("change", event => {
+          handleImageUpload(event);
+        });
+    </script>
+  </body>
+</html>
